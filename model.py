@@ -10,13 +10,15 @@ class RNN(nn.Module):
         self.n_layers = n_layers
 
         #Defining the layers
+        # self.embedding = nn.Embedding(dict_size, embedding_size)
         # RNN Layer
-        self.rnn = nn.RNN(input_size, hidden_dim, n_layers, batch_first=True, nonlinearity='relu')   
+        self.rnn = nn.RNN(input_size, hidden_dim, n_layers, batch_first=True)   
         # Fully connected layer
         self.fc = nn.Linear(hidden_dim, output_size)
     
     def forward(self, x):
         
+        # embedded_words = self.embedding(x)
         batch_size = x.size(0)
 
         # Initializing hidden state for first input using method defined below

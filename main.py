@@ -33,12 +33,12 @@ def get_index(word):
 def predict(model, word):
     # One-hot encoding our input to fit into the model
     word = np.array([[get_index(w) for w in word]])
-    word = one_hot_encode(word, dict_size, word.shape[1], 1)
-    word = torch.from_numpy(word)
-    word.to(device)
+    # word = one_hot_encode(word, dict_size, word.shape[1], 1)
+    word = torch.from_numpy(word).type(torch.LongTensor)
+    word = word.to(device)
     
     out, hidden = model(word)
-
+    
     prob = nn.functional.softmax(out[-1], dim=0).data
     # Taking the class with the highest probability score from the output
     char_ind = torch.max(prob, dim=0)[1].item()
@@ -46,7 +46,7 @@ def predict(model, word):
     return inx2word[char_ind], hidden
 
 # This function takes the desired output length and input characters as arguments, returning the produced sentence
-def sample(model, out_len, tweet=['I, am']):
+def sample(model, out_len, tweet=['impeachment']):
     model.eval() # eval mode
 
     size = out_len - len(tweet)
@@ -54,6 +54,7 @@ def sample(model, out_len, tweet=['I, am']):
     for ii in range(size):
         word, h = predict(model, tweet)
         tweet.append(word)
+        h = h.to(device)
 
     return ' '.join(tweet)
 
@@ -66,12 +67,13 @@ if __name__ == "__main__":
     dict_size = len(word2inx)
 
     # Input shape --> (Batch Size, Sequence Length, One-Hot Encoding Size)
-    input_seq = one_hot_encode(input_seq, dict_size, len(input_seq[0]), len(input_seq))
+    # input_seq = one_hot_encode(input_seq, dict_size, len(input_seq[0]), len(input_seq))
 
     # input_seq = embedd(input_seq, word2vec)
 
-    input_seq = torch.from_numpy(input_seq)
-    target_seq = torch.Tensor(target_seq)
+    input_seq = torch.from_numpy(input_seq).type(torch.LongTensor)
+    target_seq = torch.torch.LongTensor(target_seq)
+    word2vec = torch.tensor(word2vec)
 
     # check for GPU
     is_cuda = torch.cuda.is_available()
@@ -84,11 +86,11 @@ if __name__ == "__main__":
         print("GPU not available, CPU used")
 
     # Instantiate the model with hyperparameters
-    model = RNN(input_size=dict_size, output_size=dict_size, hidden_dim=100, n_layers=1)
+    model = RNN(embedding_matrix=word2vec, embedding_size=50, dict_size=dict_size, input_size=dict_size, output_size=dict_size, hidden_dim=100, n_layers=1)
     model.to(device)
 
     # Define hyperparameters
-    n_epochs = 900
+    n_epochs = 700
     lr=0.01
 
     # Define Loss, Optimizer
@@ -101,7 +103,8 @@ if __name__ == "__main__":
         optimizer.zero_grad() # Clears existing gradients from previous epoch
         input_seq = input_seq.to(device)
         target_seq = target_seq.to(device)
-        output, _ = model(input_seq)
+        output, h = model(input_seq)
+        h = h.to(device)
         loss = criterion(output, target_seq.view(-1).long())
         loss.backward() # Does backpropagation and calculates gradients
         optimizer.step() # Updates the weights accordingly
@@ -110,4 +113,4 @@ if __name__ == "__main__":
             print('Epoch: {}/{}.............'.format(epoch, n_epochs), end=' ')
             print("Loss: {:.4f}".format(loss.item()))
     
-    print(sample(model, 15, ['many']) + '!')
+    print(sample(model, 15, ['republicans']) + '!')

@@ -1,12 +1,14 @@
 import pandas as pd
-from langdetect import detect
+# from langdetect import detect
 from copy import deepcopy
 from collections import defaultdict
 import re
 import numpy as np
 
-MAX_LENGTH = 15
-OCCURENCE_LIMIT = 1
+MAX_LENGTH = 20
+OCCURENCE_LIMIT = 2
+NUM_TWEETS = 2000
+
 
 def is_english(text):
     try:
@@ -64,17 +66,19 @@ def get_word2vecs(word2inx):
     return embedding_matrix
 
 def load_data():
-    df = pd.read_csv("data/filtered_data.csv")
-    df = df[['text']].copy()
+    # df = pd.read_csv("data/filtered_data.csv")
+    # df = df[['text']].copy()
     
-    df = df[~df.text.str.contains("http")]
-    df = df[~df.text.str.contains("www")]
-    df = df[~df.text.str.contains("@")]
-    df.text = df.text.apply(lambda x: clean_str(x))
+    # df = df[~df.text.str.contains("http")]
+    # df = df[~df.text.str.contains("www")]
+    # df = df[~df.text.str.contains("@")]
+    # df.text = df.text.apply(lambda x: clean_str(x))
     # df = df[:20]
 
-    df.to_csv("data/cleaned_data.csv", index=False)
-    exit()
+    # df.to_csv("data/cleaned_data.csv", index=False)
+    df = pd.read_csv('data/cleaned_data.csv')
+    df = df[:NUM_TWEETS]
+
     # Join all the sentences together and extract the unique words from the combined sentences
     text = df.text.to_list()
     words = ''.join(text).split()
@@ -108,10 +112,11 @@ def load_data():
             # print(word)
             input_seqs[i][j] = word2inx.get(word, 0)
 
-    target_seqs = deepcopy(input_seqs[:][1:])
-    input_seqs = input_seqs[:][:-1]
+    
+    target_seqs = deepcopy(input_seqs)
+    input_seqs = np.array([seq[:-1] for seq in input_seqs])
+    target_seqs = np.array([seq[1:] for seq in target_seqs])
 
     word2vecs = get_word2vecs(word2inx)
-
 
     return input_seqs, target_seqs, inx2word, word2inx, word2vecs

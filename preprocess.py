@@ -10,7 +10,6 @@ import torch
 
 MAX_LENGTH = 25
 OCCURENCE_LIMIT = 2
-NUM_TWEETS = 30000
 batch_size = 2000
 
 
@@ -81,7 +80,6 @@ def load_data():
 
     # df.to_csv("data/cleaned_data.csv", index=False)
     df = pd.read_csv('data/cleaned_data.csv')
-    df = df[:NUM_TWEETS]
 
     # Join all the sentences together and extract the unique words from the combined sentences
     text = df.text.to_list()
@@ -135,7 +133,7 @@ def load_data():
 
     word2vecs = get_word2vecs(word2inx)
 
-    return dataloader_train, dataloader_test, inx2word, word2inx, word2vecs
+    return dataloader_train, dataloader_test, inx2word, word2inx, word2vecs, batch_size
 
 
 

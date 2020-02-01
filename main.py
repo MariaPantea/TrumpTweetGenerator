@@ -41,18 +41,16 @@ def sample(out_len, tweet=['impeachment']):
     word2inx = {k: int(v) for k, v in translators['word2inx'].items()}
 
     dict_size = len(inx2word)
-    print('Dict_size: ', dict_size)
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
-        print("GPU is available")
     else:
         device = torch.device("cpu")
-        print("GPU not available, CPU used")
 
     model = RNN(embedding_matrix=word2vec, dict_size=dict_size, hidden_dim=100, n_layers=1)
     model.load_state_dict(torch.load('models/rnn'))
     model.eval()
+    model = model.to(device)
 
     size = out_len - len(tweet)
     # Now pass in the previous characters and get a new one
@@ -96,7 +94,7 @@ def train():
     model.to(device)
 
     # Define hyperparameters
-    n_epochs = 2
+    n_epochs = 100
     lr=0.01
 
     # Define Loss, Optimizer
@@ -125,4 +123,5 @@ def train():
 
 if __name__ == "__main__":
     train()
-    print(sample(15, ['republicans']) + '!')
+    print('\n\n==> ' + sample(25, ['national']) + '...')
+    print('\n\n***')

@@ -5,9 +5,9 @@ from collections import defaultdict
 import re
 import numpy as np
 
-MAX_LENGTH = 20
+MAX_LENGTH = 25
 OCCURENCE_LIMIT = 2
-NUM_TWEETS = 2
+NUM_TWEETS = 2000
 
 
 def is_english(text):
@@ -94,11 +94,11 @@ def load_data():
     
     # Create dicts
     word2inx = dict(zip(words, range(1,dict_size+1)))
-    inx2word = dict(zip(range(1, dict_size + 1), words))
+    inx2word = dict(zip(range(1, dict_size+1), words))
     
     # Add unknown word
-    word2inx['UNK'] = 0
-    inx2word[0] = 'UNK'
+    word2inx['<UNK>'] = 0
+    inx2word[0] = '<UNK>'
 
     num_tweets = len(text)
     input_seqs = np.zeros(shape=(num_tweets, MAX_LENGTH), dtype=int)

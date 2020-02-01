@@ -7,7 +7,7 @@ import numpy as np
 
 MAX_LENGTH = 20
 OCCURENCE_LIMIT = 2
-NUM_TWEETS = 2000
+NUM_TWEETS = 2
 
 
 def is_english(text):

@@ -2,21 +2,22 @@ from torch import nn
 import torch
 
 class RNN(nn.Module):
-    def __init__(self, embedding_matrix, embedding_size, dict_size, input_size, output_size, hidden_dim, n_layers):
+    def __init__(self, embedding_matrix, dict_size, hidden_dim, n_layers):
         super(RNN, self).__init__()
-        self.embedding_size = embedding_size
+        self.embedding_size = embedding_matrix.shape[1]
         self.embedding_matrix = embedding_matrix
+        self.output_size = dict_size
 
         # Defining some parameters
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
 
         #Defining the layers
-        self.embedding = nn.Embedding(dict_size, embedding_size)
+        self.embedding = nn.Embedding(dict_size, self.embedding_size)
         # RNN Layer
-        self.rnn = nn.RNN(embedding_size, hidden_dim, n_layers, batch_first=True)   
+        self.rnn = nn.RNN(self.embedding_size, self.hidden_dim, self.n_layers, batch_first=True)   
         # Fully connected layer
-        self.fc = nn.Linear(hidden_dim, output_size)
+        self.fc = nn.Linear(hidden_dim, self.output_size)
     
     def forward(self, x):
         
@@ -39,8 +40,6 @@ class RNN(nn.Module):
         return out, hidden
     
     def init_hidden(self, batch_size):
-        # This method generates the first hidden state of zeros which we'll use in the forward pass
-        is_cuda = torch.cuda.is_available()
 
         if torch.cuda.is_available():
             device = torch.device("cuda")

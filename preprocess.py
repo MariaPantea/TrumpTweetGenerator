@@ -2,12 +2,16 @@ import pandas as pd
 # from langdetect import detect
 from copy import deepcopy
 from collections import defaultdict
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
 import re
 import numpy as np
+import torch
 
 MAX_LENGTH = 25
 OCCURENCE_LIMIT = 2
-NUM_TWEETS = 2000
+NUM_TWEETS = 30000
+batch_size = 2000
 
 
 def is_english(text):
@@ -117,6 +121,37 @@ def load_data():
     input_seqs = np.array([seq[:-1] for seq in input_seqs])
     target_seqs = np.array([seq[1:] for seq in target_seqs])
 
+    # Train test split of data
+    input_seq_train, input_seq_test, target_seq_train, target_seq_test = train_test_split(
+        input_seqs, 
+        target_seqs, 
+        test_size=0.05, 
+        random_state=1337,
+        shuffle=True)
+
+    # Construct dataloaders
+    dataloader_train = dataloader_constructor(input_seq_train, target_seq_train, batch_size)
+    dataloader_test = dataloader_constructor(input_seq_test, target_seq_test, batch_size)
+
     word2vecs = get_word2vecs(word2inx)
 
-    return input_seqs, target_seqs, inx2word, word2inx, word2vecs
+    return dataloader_train, dataloader_test, inx2word, word2inx, word2vecs, batch_size
+
+
+
+def dataloader_constructor(input_vector, target_vector, batch_size):
+        '''
+        Constructs a dataloader from two numpy arrays. 
+        input_vector is a numpy array of one_hot encoded product orders, with size (orders_in_data, num_products_per_order, product_vocabulary_size)
+        target_vector is a numpy array of the sequentially next product_id purchased for the corresponding order in input_vector, with size (orders_in_data, num_products_per_order)
+        batch_size is an integer value determining the number of data samples to extract from dataloader per iteration
+
+        Thus, the one_hot_encoded version of product in position (x, y, :) in input_vector should be found as a product id in position (x, y-1) in target_vector
+        '''
+
+        input_tensor = torch.from_numpy(input_vector)
+        target_tensor = torch.from_numpy(target_vector)
+
+        dataset_for_dataloader = TensorDataset(input_tensor, target_tensor)
+        
+        return DataLoader(dataset_for_dataloader, batch_size=batch_size, shuffle=True)

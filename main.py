@@ -65,7 +65,7 @@ def sample(out_len, tweet=['impeachment']):
 
 def train():
     
-    input_seq, target_seq, inx2word, word2inx, word2vec = load_data()
+    train_seq, test_seq, inx2word, word2inx, word2vec, batch_size = load_data()
 
     translators = {'inx2word' : inx2word, 'word2inx': word2inx}
     with open('models/translators.p', 'wb') as f:
@@ -74,9 +74,6 @@ def train():
         pickle.dump(word2vec, f)
 
     dict_size = len(word2inx)
-
-    input_seq = torch.from_numpy(input_seq).type(torch.LongTensor)
-    target_seq = torch.torch.LongTensor(target_seq)
     word2vec = torch.tensor(word2vec)
 
     # check for GPU
@@ -94,30 +91,48 @@ def train():
     model.to(device)
 
     # Define hyperparameters
+    batch_size = 2000
     n_epochs = 100
-    lr=0.01
+    lr = 0.01
 
     # Define Loss, Optimizer
-    criterion = nn.CrossEntropyLoss()
+    lossfunction = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 
     # Training Run
     for epoch in range(1, n_epochs + 1):
-        optimizer.zero_grad() # Clears existing gradients from previous epoch
-        input_seq = input_seq.to(device)
-        target_seq = target_seq.to(device)
-        output, h = model(input_seq)
-        h = h.to(device)
-        loss = criterion(output, target_seq.view(-1).long())
-        loss.backward() # Does backpropagation and calculates gradients
-        optimizer.step() # Updates the weights accordingly
-        
-        if epoch%10 == 0 or epoch == 1:
+        epoch_loss = 0
+        for _, (input_seq, target_seq) in enumerate(train_seq):
+
+            optimizer.zero_grad() # Clears existing gradients from previous epoch
+            input_seq = input_seq.to(device)
+            target_seq = target_seq.to(device)
+            output, h = model(input_seq)
+            h = h.to(device)
+            loss = lossfunction(output, target_seq.view(-1).long())
+            loss.backward() # Does backpropagation and calculates gradients
+            optimizer.step()  # Updates the weights accordingly
+            epoch_loss += loss.item()
+            
+        if epoch % 10 == 0 or epoch == 1:
+            loss_test_total = 0
+            for input_test, target_test in test_seq:
+                input_test = input_test.to(device)
+                target_test = target_test.to(device)
+
+                output_test, _ = model(input_test)
+                loss_test = lossfunction(output_test, target_test.view(-1).long())
+                loss_test_total += loss_test.item()
+
+            norm_loss = epoch_loss / (len(train_seq) * batch_size)
+            norm_loss_test = loss_test_total / (len(test_seq) * batch_size)
+
             print('Epoch: {}/{}.............'.format(epoch, n_epochs), end=' ')
-            print("Loss: {:.4f}".format(loss.item()))
+            print("Train loss: {:.4f}".format(norm_loss), end=' | ')
+            print("Test loss: {:.4f}".format(norm_loss_test), end=' | ')
+            torch.save(model.state_dict(), 'models/rnn')
     
-    torch.save(model.state_dict(), 'models/rnn')
     print('Training done')
 
 

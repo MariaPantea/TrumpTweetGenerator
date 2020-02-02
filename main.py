@@ -1,4 +1,5 @@
 from preprocess import load_data
+import argparse
 import numpy as np
 import torch
 from torch import nn
@@ -138,6 +139,18 @@ def train():
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--start', 
+        type=str,
+        nargs='+',
+        default=['mexico'], 
+        help='Start of the sentence')
+
+    args=parser.parse_args()
+
     #train()
-    print('\n\n==> ' + sample(25, ['we', 'have']) + '...')
+    print('\n\n==> ' + sample(25, args.start) + '...')
     print('\n\n***')

@@ -30,7 +30,7 @@ def predict(model, word, device, inx2word, word2inx):
     return inx2word[word_ind], hidden
 
 # This function takes the desired output length and input characters as arguments, returning the produced sentence
-def sample(out_len, tweet=['impeachment']):
+def sample(out_len, tweet):
     with open('models/word2vec.p', 'rb') as f:
         word2vec = pickle.load(f)
         word2vec = torch.tensor(word2vec)
@@ -57,7 +57,8 @@ def sample(out_len, tweet=['impeachment']):
     # Now pass in the previous characters and get a new one
     for _ in range(size):
         word, h = predict(model, tweet, device, inx2word, word2inx)
-        tweet.append(word)
+        if word != '<UNK>':
+            tweet.append(word)
         h = h.to(device)
 
     return ' '.join(tweet)

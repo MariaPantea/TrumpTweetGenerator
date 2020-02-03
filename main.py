@@ -49,7 +49,7 @@ def sample(out_len, tweet):
         device = torch.device("cpu")
 
     model = RNN(embedding_matrix=word2vec, dict_size=dict_size, hidden_dim=100, n_layers=1)
-    model.load_state_dict(torch.load('models/rnn'))
+    model.load_state_dict(torch.load('models/rnn', map_location=device))
     model.eval()
     model = model.to(device)
 

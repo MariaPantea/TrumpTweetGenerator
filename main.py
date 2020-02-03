@@ -149,9 +149,15 @@ if __name__ == "__main__":
         nargs='+',
         default=['mexico'], 
         help='Start of the sentence')
+    parser.add_argument(
+        '--train', 
+        type=bool,
+        default=False, 
+        help='Retrain model')
 
     args=parser.parse_args()
 
-    #train()
+    if args.train:
+        train()
     print('\n\n==> ' + sample(25, args.start) + '...')
     print('\n\n***')

@@ -1,5 +1,4 @@
 import pandas as pd
-# from langdetect import detect
 from copy import deepcopy
 from collections import defaultdict
 from torch.utils.data import TensorDataset, DataLoader
@@ -69,16 +68,6 @@ def get_word2vecs(word2inx):
     return embedding_matrix
 
 def load_data():
-    # df = pd.read_csv("data/filtered_data.csv")
-    # df = df[['text']].copy()
-    
-    # df = df[~df.text.str.contains("http")]
-    # df = df[~df.text.str.contains("www")]
-    # df = df[~df.text.str.contains("@")]
-    # df.text = df.text.apply(lambda x: clean_str(x))
-    # df = df[:20]
-
-    # df.to_csv("data/cleaned_data.csv", index=False)
     df = pd.read_csv('data/cleaned_data.csv')
 
     # Join all the sentences together and extract the unique words from the combined sentences
